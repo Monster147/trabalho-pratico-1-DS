@@ -4,7 +4,7 @@ Este documento visa identificar 7 características candidatas a partir do enunci
 
 ## 1. Método de avaliação
 
-Para avaliar as possíveis características arquiteturais existentes no sistema, utilizamos os três critérios aprendido em aula:
+Para avaliar as possíveis características arquiteturais existentes no sistema, utilizamos os três critérios aprendidos em aula:
 
 - É uma consideração de design fora do domínio;
 - Irá influenciar um aspeto estrutural do design;
@@ -14,7 +14,7 @@ Para avaliar as possíveis características arquiteturais existentes no sistema,
 
 
 | # | Característica          | Tipo      | Categoria   | Frase do enunciado de onde saiu                                                                                                                                                                                   | Porque passa os 3 critérios                                                                                                                                                                                                                                                          |
-| - | ----------------------- | --------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|---|-------------------------|-----------|-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | 1 | Disponibilidade         | Implícito | Operacional | «O contrato de concessão aplica uma multa por cada hora em que mais de 10% das estações não conseguem desbloquear bicicletas» ou «As docas comunicam por rede móvel e há zonas onde a rede falha com frequência.» | Fora do domínio, por envolver a continuidade do serviço perante falhas; estrutural, por condicionar a gestão de falhas, a reconciliação de operações e a idempotência; crítica para a sustentabilidade financeira e a reputação.                                                     |
 | 2 | Elasticidade            | Implícito | Operacional | «Cerca de 70% dos desbloqueios acontecem entre as 8h00–9h30 e as 17h30–19h00. Em eventos (Santos Populares, maratona) a procura em algumas estações multiplica por 4.»                                            | Fora do domínio, por estar relacionada com a capacidade de processamento; estrutural, por poder exigir o ajuste dinâmico dos recursos e componentes capazes de suportar cargas variáveis; crítica para manter a capacidade de resposta durante os picos de procura.                  |
 | 3 | Configurabilidade       | Implícito | Estrutural  | «Duas câmaras vizinhas mostraram interesse em usar a plataforma com tarifários próprios.»                                                                                                                         | Fora do domínio, por envolver a adaptação do sistema às regras de cada entidade; estrutural, por exigir tarifários configuráveis e independentes da lógica de negócio; crítica para permitir a expansão do negócio sem duplicação de código.                                         |
@@ -27,10 +27,10 @@ Para avaliar as possíveis características arquiteturais existentes no sistema,
 
 A característica arquitetural «Segurança» pode ser decomposta nas seguintes subcaracterísticas:
 
-| Subcaracterística | Aplicação no Lisboa Pedala |
-|-------------------| -------------------------- |
-| Autenticação      | Verificar a identidade do utilizador através da aplicação ou do cartão Navegante. |
-| Autorização       | Garantir que cada utilizador só pode executar as operações permitidas. |
+| Subcaracterística | Aplicação no Lisboa Pedala                                                                      |
+|-------------------|-------------------------------------------------------------------------------------------------|
+| Autenticação      | Verificar a identidade do utilizador através da aplicação ou do cartão Navegante.               |
+| Autorização       | Garantir que cada utilizador só pode executar as operações permitidas.                          |
 | Confidencialidade | Proteger os dados pessoais dos utilizadores, como o percurso das viagens, de acordo com o RGPD. |
 
 ## 4. Top 3 características arquiteturais
