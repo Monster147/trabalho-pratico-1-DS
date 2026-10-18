@@ -39,15 +39,54 @@ Para evitar o antipadrão da Entity Trap, utilizámos as duas abordagens complem
 |:-----------------------------|:--------------------------------------------------------------------|:--------------------------------------:|
 | Assinante/Ocasional          | Desbloquear, Devolver, Ver mapa em tempo real, Histórico e faturas  | `desbloqueio`, `estacoes`, `faturacao` |
 | Técnico de Manutenção        | Receber ordem, Aceitar intervenção, Registar reparação              |              `manutencao`              |
-| Equipa de Redestribuição     | Receber sugestão de rota, Confirmar recolha/entrega de bicicletas   |            `redestribuicao`            |
+| Equipa de Redistribuição     | Receber sugestão de rota, Confirmar recolha/entrega de bicicletas   |            `redistribuicao`            |
 | Gestor Municipal             | Gerar relatório mensal por freguesia / CO2, Publicar dados abertos  |              `relatorios`              |
 | Doca (Sistema)               | Reportar desbloqueio, Encaixe, Ocupação, Reenvio por falha de rede  |             `eventosdoca`              |
 | Bicicleta Elétrica (Sistema) | Enviar telemetria (a cada 30 s), Reportar avaria de bateria/travões |        `eventosdoca` -> `frota`        |
 
-## Mapeamento user story -> componente
+## 3. Mapeamento user story - componente
 
-| User story | Ator      |                                        Componentes                                        |
+| User Story | Ator      |                                    Componentes Lógicos                                    |
 |:-----------|:----------|:-----------------------------------------------------------------------------------------:|
 | US-1       | Assinante | `acessos`, `desbloqueio`, `estacoes`, `eventosdoca`, `viagens`, `faturacao`, `pagamentos` |
-| US-2       | Técnico   |                                             ``                                             |
+| US-2       | Técnico   |            `eventosdoca`, `frota`, `manutencao`, `acessos` (para autenticação)            |
 | US-3       | Doca      |                           `eventosdoca`, `viagens`, `estacoes`                            |
+
+## 4. Análise de coesão
+
+| Componente       | Nível              | Justificação                                                                                                                    |
+|------------------|--------------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `comum`          | (1) Funcional      | Contém eventos base e value objects, de modo a que os elementos do sistema possuam um vocabulário partilhado.                   |
+| `acessos`        | (3) Comunicacional | Agrega os mesmos dados dos utilizadores (conta, passe, histórico, ...). Todas as operações são sobre o mesmo conjunto de dados. |                      
+| `estacoes`       | (1) Funcional      | Gere a topologia, ocupação e reserva de docas em estações de bicicletas.                                                        |                        
+| `frota`          | (1) Funcional      | Monitoriza o estado de uma bicicleta individual (bateria, avarias, localização).                                                |                        
+| `eventosdoca`    | (1) Funcional      | Recebe, reduplica e entrega eventos enviados pelas docas (sem os interpretar).                                                  |                        
+| `desbloqueio`    | (1) Funcional      | Orquestra o desbloqueio de bicicletas: validação, reserva e comando para ser destrancada.                                       |                        
+| `viagens`        | (1) Funcional      | Gere o ciclo de vida de uma viagem (iniciar, acompanhar, fechar).                                                               |                        
+| `faturacao`      | (2) Sequencial     | Trabalha com os dados de faturação em sequência. Obtém o preço, cria a fatura e envia-a à Autoridade Tributária.                |                        
+| `pagamentos`     | (1) Funcional      | Cobrança de viagens independentes.                                                                                              |                        
+| `manutencao`     | (1) Funcional      | Gere o ciclo de vida das ordens de manutenção atribuídas a técnicos.                                                            |                        
+| `redistribuicao` | (1) Funcional      | Gere sugestões de movimento para as carrinhas para a recolha de bicicletas.                                                     |                        
+| `relatorios`     | (1) Funcional      | Gerar relatórios estatísticos para a Câmara Municipal.                                                                          |                        
+
+## 5. Acoplamento aferente, eferente e instabilidade por componente
+
+A tabela relativa ao acoplamento aferente, eferente e instabilidade não conta com a componente `comum`, pois todas as outras dependem dela e esta é estável (I = 0.00).
+
+| Componente       | CE                                              | CA                                                           | Instabilidade $$Ce/(Ca+Ce)$$ | Análise da Instabilidade |
+|------------------|-------------------------------------------------|--------------------------------------------------------------|------------------------------|--------------------------|
+| `acessos`        | 0                                               | 2 (`desbloqueio`, `faturacao`)                               | 0                            | Estabilidade máxima      |
+| `estacoes`       | 1 (`eventosdoca`)                               | 4 (`desbloqueio`, `viagens`, `redistribuicao`, `relatorios`) | 0.20                         | Altamente estável        |
+| `frota`          | 1 (`eventosdoca`)                               | 3 (`desbloqueio`, `manutencao`, `relatorios`)                | 0.25                         | Altamente estável        |
+| `eventosdoca`    | 0                                               | 4 (`viagens`, `estacoes`, `frota`, `manutencao`)             | 0                            | Estabilidade máxima      |
+| `desbloqueio`    | 3 (`acessos`, `estacoes`, `frota`)              | 0                                                            | 1                            | Instável                 |
+| `viagens`        | 2 (`estacoes`, `eventosdoca`)                   | 2 (`faturacao`, `relatorios`)                                | 0.5                          | Equilibrado              |
+| `faturacao`      | 3 (`viagens`, `acessos`, `pagamentos`)          | 1 (`relatorios`)                                             | 0.75                         | Moderadamente instável   |
+| `pagamentos`     | 0                                               | 1 (`faturacao`)                                              | 0                            | Estabilidade máxima      |
+| `manutencao`     | 2 (`frota`, `eventosdoca`)                      | 0                                                            | 1                            | Instável                 |
+| `redistribuicao` | 1 (`estacoes`)                                  | 0                                                            | 1                            | Instável                 |
+| `relatorios`     | 4 (`faturacao`, `viagens`, `estacoes`, `frota`) | 0                                                            | 1                            | Instável                 |
+
+## 6. Conascência entre componentes
+
+## 7. Exemplos de acoplamento temporal
