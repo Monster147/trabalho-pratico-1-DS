@@ -1,0 +1,42 @@
+@startuml componentes-iteracao2
+' Diagrama de componentes UML — Iteração 2 (versão final)
+' Seta tracejada A ..> B: A depende de B. O componente comum não está representado.
+left to right direction
+skinparam componentStyle uml2
+skinparam shadowing false
+
+component identificacao
+component autorizacao
+component docas
+component viagens
+component ocupacao
+component disponibilidade
+component telemetria
+component manutencao
+component tarifario
+component faturacao
+component pagamentos
+component historico
+component redistribuicao
+component relatorios
+
+autorizacao ..> identificacao
+autorizacao ..> manutencao
+autorizacao ..> docas
+viagens ..> docas
+ocupacao ..> docas
+manutencao ..> telemetria
+disponibilidade ..> ocupacao
+disponibilidade ..> telemetria
+disponibilidade ..> manutencao
+faturacao ..> viagens
+faturacao ..> tarifario
+faturacao ..> identificacao
+pagamentos ..> faturacao
+historico ..> viagens
+historico ..> faturacao
+historico ..> identificacao
+redistribuicao ..> ocupacao
+relatorios ..> viagens
+relatorios ..> ocupacao
+@enduml

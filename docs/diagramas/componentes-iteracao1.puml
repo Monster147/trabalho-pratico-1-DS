@@ -1,0 +1,36 @@
+@startuml componentes-iteracao1
+' Diagrama de componentes UML — Iteração 1
+' Seta tracejada A ..> B: A depende de B
+left to right direction
+skinparam componentStyle uml2
+skinparam shadowing false
+
+component contas
+component desbloqueio
+component docas
+component estacoes
+component bicicletas
+component viagens
+component faturacao
+component pagamentos
+component manutencao
+component redistribuicao
+component relatorios
+
+desbloqueio ..> contas
+desbloqueio ..> estacoes
+desbloqueio ..> bicicletas
+desbloqueio ..> docas
+viagens ..> docas
+estacoes ..> docas
+estacoes ..> bicicletas
+manutencao ..> bicicletas
+faturacao ..> viagens
+faturacao ..> contas
+faturacao ..> pagamentos
+contas ..> viagens
+contas ..> faturacao
+redistribuicao ..> estacoes
+relatorios ..> viagens
+relatorios ..> estacoes
+@enduml
