@@ -1,0 +1,42 @@
+@startuml c4-contexto
+skinparam componentStyle uml2
+skinparam packageStyle rect
+
+title Diagrama de Contexto C4 (Nível 1) — Plataforma Lisboa Pedala
+
+actor "Assinante / Utilizador Ocasional" as User
+actor "Técnico de Manutenção" as Tech
+actor "Equipa de Redistribuição" as Driver
+actor "Gestor Municipal / Câmara" as Manager
+
+package "Hardware / Dispositivos de Campo" {
+  component "Docas Físicas\n[Hardware / IoT]" as DocaHW
+  component "Bicicletas Elétricas\n[Hardware / Telemetria]" as BikeHW
+}
+
+rectangle "Plataforma Lisboa Pedala\n[Sistema Central de Gestão]" as System #LightBlue
+
+package "Sistemas Externos" {
+  component "Gateway de Pagamentos\n[MB WAY / Cartão]" as PaymentGW
+  component "Autoridade Tributária (AT)\n[Sistema Fiscal]" as ATSystem
+  component "Sistema Navegante\n[Passes de Transporte]" as NaveganteSystem
+}
+
+' Relações dos Atores com a Plataforma
+User --> System : Utiliza App móvel para desbloquear, consultar mapa e ver faturas
+Tech --> System : Recebe e gere ordens de trabalho de manutenção
+Driver --> System : Recebe rotas de redistribuição de bicicletas
+Manager --> System : Configura tarifários e acede a relatórios municipais
+
+' Relações com Hardware e Dispositivos
+User --> DocaHW : Apresenta QR / Cartão Navegante e devolve bicicletas
+DocaHW --> System : Envia eventos de desbloqueio e encaixe (HTTP / Offline Sync)
+System --> DocaHW : Sincroniza listas de autorização e chaves de validação local
+BikeHW --> System : Envia telemetria contínua a cada 30s (GPRS/IoT)
+
+' Relações com Sistemas Externos
+System --> PaymentGW : Processa cobrança de faturas (MB WAY / Cartão)
+System --> ATSystem : Comunica faturas numeradas para arquivo legal (10 anos)
+System --> NaveganteSystem : Valida cartões e elegibilidade de assinantes
+
+@enduml

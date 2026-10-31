@@ -1,0 +1,51 @@
+@startuml c4-contentores
+skinparam componentStyle uml2
+skinparam packageStyle rect
+
+title Diagrama de Contentores C4 (Nível 2) — Plataforma Lisboa Pedala
+
+actor "Utilizadores (Assinante / Ocasional)" as User
+actor "Técnicos / Redistribuição / Gestores" as Staff
+
+package "Dispositivos & Clientes" {
+  [Aplicação Móvel\n(Mobile App - iOS/Android)] as MobileApp
+  [Controlador da Doca\n(Software Local - C/C++ IoT)\n* Decisão local/offline (ADR-001)] as DockController
+  [Telemetria da Bicicleta\n(Módulo IoT na Frota)] as BikeIoT
+}
+
+package "Infraestrutura Backend Lisboa Pedala (JVM / Cloud)" #LightYellow {
+  [Backend Monólito Modular\n(Java 21 / Spring Boot REST API)] as BackendAPI
+  [Worker de Telemetria\n(Processo Assíncrono - Ingestor)] as TelemetryWorker
+  [Worker de Pagamentos\n(Processo Assíncrono - Cobranças)] as PaymentWorker
+  database "Base de Dados Relacional\n(SQLite / PostgreSQL - Tabelas por Componente)" as DB
+}
+
+package "Sistemas Externos" {
+  [Gateway de Pagamentos\n(MB WAY / Cartão)] as PaymentGW
+  [Autoridade Tributária\n(Sistema Fiscal)] as ATSystem
+  [Sistema Navegante\n(Validação de Passes)] as NaveganteSystem
+}
+
+' Interações dos Clientes / Dispositivos
+User --> MobileApp : Pede QR de desbloqueio, vê mapa e histórico
+Staff --> BackendAPI : Acede a ordens de manutenção, rotas e relatórios
+User --> DockController : Desbloqueia com QR ou cartão Navegante\n(Decisão 100% Local - sem backend em tempo real)
+
+' Interações de Comunicação de Campo
+DockController --> BackendAPI : Envia eventos armazenados e recebe sincronizações (Sync/Assíncrono)
+BikeIoT --> TelemetryWorker : Envia telemetria contínua a cada 30s (UDP/MQTT/HTTP - ~35 msg/s)
+
+' Interações Internas do Backend
+BackendAPI --> DB : Lê e escreve dados de negócios (tabelas prefixadas)
+TelemetryWorker --> DB : Atualiza último estado da bicicleta e avarias
+PaymentWorker --> DB : Atualiza estado de faturas e liquidação
+
+BackendAPI ..> PaymentWorker : Dispara tarefas de cobrança (Pub/Sub Eventos FaturaEmitida)
+TelemetryWorker ..> BackendAPI : Notifica anomalias e avarias detetadas
+
+' Interações com Sistemas Externos
+BackendAPI --> NaveganteSystem : Valida cartões física e remotamente
+BackendAPI --> ATSystem : Envia faturas numeradas (arquivo 10 anos)
+PaymentWorker --> PaymentGW : Executa cobrança assíncrona (MB WAY / Cartão)
+
+@enduml

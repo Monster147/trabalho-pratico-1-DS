@@ -1,0 +1,97 @@
+@startuml cc-desbloquear-devolver-cobrar
+autonumber
+title Vista de Componentes e Conectores — Fluxo US-1 (Desbloquear -> Devolver -> Cobrar)
+
+actor "Utilizador" as User
+participant "App / Cartão Navegante" as Client
+participant "Doca Física" as Doca
+
+box "Backend (Monólito Modular)" #LightYellow
+  participant "autorizacao" as Auth
+  participant "docas" as DocasComp
+  participant "viagens" as ViagensComp
+  participant "ocupacao" as OcupacaoComp
+  participant "faturacao" as FaturacaoComp
+  participant "tarifario" as TarifarioComp
+  participant "identificacao" as IdentComp
+  participant "pagamentos" as PagamentosComp
+end box
+
+database "Base de Dados" as DB
+participant "Gateway Pagamentos / AT" as External
+
+== Phase 1: Sincronização Prévia & Pedido de Desbloqueio ==
+Auth -> Doca: K2: Sincroniza dados de autorização/elegibilidade (HTTP assíncrono)
+User -> Client: Inicia pedido de desbloqueio
+Client -> Auth: K1: Solicita QR assinado (HTTP REST síncrono)
+Auth -> IdentComp: K5: Valida conta e elegibilidade
+Auth --> Client: Devolve QR assinado
+
+== Phase 2: Desbloqueio Local na Doca (ADR-001) ==
+User -> Doca: Apresenta QR ou Cartão Navegante
+note over Doca
+  Decisão 100% Local (ADR-001):
+  Doca valida QR/Navegante com dados sincronizados.
+  Não faz chamada ao backend em tempo real.
+end note
+Doca -> Doca: Desbloqueia bicicleta e guarda evento localmente
+
+alt Quando a rede estiver disponível
+  Doca -> DocasComp: K3: Envia evento DesbloqueioEfetuado (id_doca, num_seq)
+  activate DocasComp
+  note over DocasComp
+    Idempotência (ADR-003):
+    Persiste chave (doca_id, seq) antes de confirmar.
+  end note
+  DocasComp -> DB: Guardar evento & chave
+  DocasComp --> Doca: ACK (Confirmação)
+  DocasComp --> ViagensComp: K4: Pub/Sub Evento DesbloqueioEfetuado
+  deactivate DocasComp
+  ViagensComp -> DB: Abre registo de viagem
+end
+
+== Phase 3: Devolução / Encaixe na Doca ==
+User -> Doca: Encaixa bicicleta na doca livre
+Doca -> Doca: Confirma encaixe localmente e tranca
+alt Envio de Evento de Encaixe
+  Doca -> DocasComp: K3: Envia evento BicicletaEncaixada (id_doca, num_seq)
+  activate DocasComp
+  DocasComp -> DB: Guardar evento & chave
+  DocasComp --> Doca: ACK
+  DocasComp --> ViagensComp: K4: Pub/Sub Evento BicicletaEncaixada
+  DocasComp --> OcupacaoComp: K4: Pub/Sub Evento BicicletaEncaixada
+  deactivate DocasComp
+  
+  group Unidade de Trabalho (Atómica síncrona no fecho)
+    ViagensComp -> DB: Fecha viagem & regista evento ViagemFechada
+  end
+  OcupacaoComp -> DB: Atualiza estado de ocupação da estação
+end
+
+== Phase 4: Cobrança Assíncrona & Faturação (ADR-005, ADR-006) ==
+ViagensComp --> FaturacaoComp: K4: Pub/Sub Evento ViagemFechada (Assíncrono)
+activate FaturacaoComp
+FaturacaoComp -> TarifarioComp: K5: Chamada pura: calculaValor(duracao, tipo, municipio)
+TarifarioComp --> FaturacaoComp: Devolve valor da viagem (em cêntimos)
+FaturacaoComp -> IdentComp: K5: Obtém NIF e dados fiscais do utilizador
+FaturacaoComp -> DB: Emite e guarda fatura numerada
+FaturacaoComp -> External: Comunica fatura à AT (Autoridade Tributária)
+FaturacaoComp --> PagamentosComp: K4: Pub/Sub Evento FaturaEmitida
+deactivate FaturacaoComp
+
+activate PagamentosComp
+PagamentosComp -> External: K6: Pedido de cobrança (MB WAY / Cartão)
+alt Sucesso
+  External --> PagamentosComp: Sucesso
+  PagamentosComp -> DB: Regista pagamento concluído
+else Falha no Pagamento
+  External --> PagamentosComp: Falha / Timeout
+  PagamentosComp -> DB: Regista dívida pendente (Agenda retentativas)
+  note over PagamentosComp
+    ADR-006: A viagem permanece fechada!
+    Falha na cobrança nunca reabre nem cancela a devolução.
+  end note
+end
+deactivate PagamentosComp
+
+@enduml

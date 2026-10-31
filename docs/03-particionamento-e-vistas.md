@@ -28,43 +28,57 @@ A implementação é particionada por domínio. Cada componente final definido e
 
 ```text
 lisboa_pedala/
-├─ comum/
-├─ identificacao/
-├─ autorizacao/
-├─ docas/
-├─ viagens/
-├─ ocupacao/
-├─ disponibilidade/
-├─ telemetria/
-├─ manutencao/
-├─ tarifario/
-├─ faturacao/
-├─ pagamento/
-├─ historico/
-├─ redistribuicao/
-└─ relatorios/
+├── comum/                     
+├── acesso/
+│   ├── identificacao/         
+│   └── autorizacao/           
+├── estacao/
+│   ├── docas/                 
+│   ├── ocupacao/              
+│   ├── disponibilidade/       
+│   └── redistribuicao/        
+├── viagem/
+│   ├── viagens/               
+│   └── historico/             
+├── cobranca/
+│   ├── tarifario/             
+│   ├── faturacao/             
+│   └── pagamentos/            
+├── frota/
+│   ├── telemetria/            
+│   └── manutencao/            
+└── municipio/
+    └── relatorios/            
 ```
+
+#### Diagramas da Vista de Módulos
+
+* **C4 Nível 3 — Diagrama de Componentes do Backend:**
+  ![C4 Nível 3 - Componentes](diagramas/c4-componentes.svg)
+
+* **Vista de Módulos — Dependências Estáticas (Allowed-to-Use):** 
+![Vista de Módulos - Allowed to Use](diagramas/vista-modulos.svg)
 
 ### 2.1. Regras `allowed-to-use`
 Uma dependência `A -> B` significa que o módulo `A` pode importar ou chamar interfaces públicas de `B`. A tabela contém todas as dependências permitidas, qualquer dependência não esteja listada é proibida.
 
-| Módulo | Pode depender de |
-|:---:|:---|
-| `identificacao` | `comum` |
-| `autorizacao` | `identificacao`, `manutencao`, `docas`, `comum` |
-| `docas` | `comum` |
-| `viagens` | `docas`, `comum` |
-| `ocupacao` | `docas`, `comum` |
-| `disponibilidade` | `ocupacao`, `telemetria`, `manutencao`, `comum` |
-| `telemetria` | `comum` |
-| `manutencao` | `telemetria`, `comum` |
-| `tarifario` | `comum` |
+| Módulo | Pode depender de                                 |
+|:---:|:-------------------------------------------------|
+| `identificacao` | `comum`                                          |
+| `autorizacao` | `identificacao`, `manutencao`, `docas`, `comum`  |
+| `docas` | `comum`                                          |
+| `viagens` | `docas`, `comum`                                 |
+| `ocupacao` | `docas`, `comum`                                 |
+| `disponibilidade` | `ocupacao`, `telemetria`, `manutencao`, `comum`  |
+| `telemetria` | `comum`                                          |
+| `manutencao` | `telemetria`, `comum`                            |
+| `tarifario` | `comum`                                          |
 | `faturacao` | `viagens`, `tarifario`, `identificacao`, `comum` |
-| `pagamentos` | `faturacao`, `comun` |
+| `pagamentos` | `faturacao`, `comum`                             |
 | `historico` | `viagens`, `faturacao`, `identificacao`, `comum` |
-| `redistribuicao` | `ocupacao`, `comum` |
-| `relatorios` | `viagens`, `ocupacao`, `comum` |
-| `comum` | Nenhum módulo |
+| `redistribuicao` | `ocupacao`, `comum`                              |
+| `relatorios` | `viagens`, `ocupacao`, `comum`                   |
+| `comum` | Nenhum módulo                                    |
 
 ### 2.2. Restrições
 
@@ -116,13 +130,16 @@ O fluxo de cobrança é assíncrono em relação ao fecho da viagem. Uma falha n
 | `viagens` | `faturacao` | `ViagemFechada` | Publicação/consumo de eventos |
 | `faturacao` | `tarifario` | Duração, tipo de utilizador e município; recebe o montante | Chamada ao componente |
 | `faturacao` | `identificacao` | Dados do utilizador necessários à faturação | Chamada ao componente |
-| `pagamentos` | `faturacao` | Fatura emitida a cobrar | Reação assíncrona ao evento de fatura |
+| `faturacao` | `pagamentos` | Fatura emitida a cobrar | Reação assíncrona ao evento de fatura |
 
 As decisões de desbloqueio local e sincronização seguem o [ADR-001](adr/ADR-001.md).
 A receção idempotente e ordenada dos eventos segue o [ADR-003](adr/ADR-003.md).
 O cálculo configurável do preço segue o [ADR-005](adr/ADR-005.md). 
 A cobrança assíncrona e independente do fecho segue o [ADR-006](adr/ADR-006.md).
 
+#### Diagrama de Sequência e Conectores (Runtime View) 
+* **Vista C&amp;C — Fluxo da US-1 (Desbloquear → Devolver → Cobrar):** 
+![Vista C&amp;C - Sequência US-1](diagramas/cc-desbloquear-devolver-cobrar.svg)
 
 ## 4. Vista de alocação
 

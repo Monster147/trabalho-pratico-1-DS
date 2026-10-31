@@ -1,0 +1,107 @@
+@startuml c4-componentes
+skinparam componentStyle uml2
+skinparam packageStyle rect
+
+title Diagrama de Componentes C4 (Nível 3) — Backend Monólito Modular (Lisboa Pedala)
+
+note "Legenda:\n  ──> Chamada Síncrona a Interface Interna (.api) / REST Externo\n  ..> Evento Assíncrono / Mensagem Pub-Sub Interna\n  Todos os componentes utilizam o pacote partilhado 'comum'." as Legend
+
+package "Dispositivos & Clientes (Externos ao Backend)" #LightGray {
+  [Aplicação Móvel / App] as MobileApp
+  [Controlador da Doca / Hardware] as DockHW
+  [Bicicleta Elétrica / Telemetria] as BikeIoT
+}
+
+package "Contentor: Backend Monólito Modular (Java 21 / Spring Boot)" #LightYellow {
+
+  package "Domínio: acesso" {
+    [identificacao\n(Autenticação e Elegibilidade)] as CompIdent
+    [autorizacao\n(Emissão QR e Sincronização)] as CompAuth
+  }
+
+  package "Domínio: estacao" {
+    [docas\n(Gestão de Eventos da Doca)] as CompDocas
+    [ocupacao\n(Escrita Transacional de Ocupação)] as CompOcupacao
+    [disponibilidade\n(Vista de Leitura do Mapa)] as CompDisp
+    [redistribuicao\n(Sugestão de Rotas)] as CompRedist
+  }
+
+  package "Domínio: viagem" {
+    [viagens\n(Ciclo de Vida da Viagem)] as CompViagens
+    [historico\n(Consultas de Histórico do Utilizador)] as CompHist
+  }
+
+  package "Domínio: cobranca" {
+    [tarifario\n(Cálculo de Preço Configurável)] as CompTarif
+    [faturacao\n(Emissão e Arquivo de Faturas)] as CompFat
+    [pagamentos\n(Processamento Financeiro Assíncrono)] as CompPag
+  }
+
+  package "Domínio: frota" {
+    [telemetria\n(Ingestão e Deteção de Avarias)] as CompTelem
+    [manutencao\n(Ordens de Trabalho dos Técnicos)] as CompManut
+  }
+
+  package "Domínio: municipio" {
+    [relatorios\n(Métricas Mensais por Freguesia)] as CompRelat
+  }
+
+  [comum\n(Tipos e Eventos Partilhados)] as CompComum #LightGray
+}
+
+database "Base de Dados Relacional\n(SQLite / PostgreSQL)" as DB
+
+package "Sistemas Externos" {
+  [Gateway de Pagamentos\n(MB WAY / Cartão)] as PaymentGW
+  [Autoridade Tributária\n(AT)] as ATSystem
+  [Sistema Navegante\n(Passes de Transporte)] as NaveganteGW
+}
+
+' Relações dos Clientes com Componentes do Backend
+MobileApp --> CompAuth : Pede QR assinado
+MobileApp --> CompDisp : Consulta mapa em tempo real
+MobileApp --> CompHist : Consulta histórico e faturas
+DockHW --> CompDocas : Envia eventos de desbloqueio/encaixe
+DockHW <-- CompAuth : Recebe dados sincronizados
+BikeIoT --> CompTelem : Envia telemetria contínua
+
+' Interações Internas entre Componentes (Chamadas Síncronas .api)
+CompAuth --> CompIdent : Valida conta/passe
+CompAuth --> CompManut : Verifica estado fora de serviço
+CompAuth --> CompDocas : Prepara sincronização
+
+CompDisp --> CompOcupacao : Lê ocupação das estações
+CompDisp --> CompManut : Filtra bicicletas fora de serviço
+
+CompHist --> CompViagens : Consulta viagens do utilizador
+CompHist --> CompFat : Consulta faturas do utilizador
+
+CompFat --> CompTarif : Obtém valor da viagem (função pura)
+CompFat --> CompIdent : Obtém dados fiscais / NIF
+
+CompRedist --> CompOcupacao : Consulta ocupação das estações
+CompRelat --> CompViagens : Agrupa viagens por mês
+CompRelat --> CompOcupacao : Agrupa ocupação por freguesia
+
+' Eventos Assíncronos (Pub-Sub Interno)
+CompDocas ..> CompViagens : Publica evento Desbloqueio/Encaixe
+CompDocas ..> CompOcupacao : Publica evento Encaixe
+CompViagens ..> CompFat : Publica evento ViagemFechada
+CompFat ..> CompPag : Publica evento FaturaEmitida
+CompTelem ..> CompManut : Notifica avarias
+CompTelem ..> CompDisp : Fornece estado das bicicletas
+
+' Persistência na Base de Dados
+CompDocas --> DB : Persiste eventos e chaves
+CompViagens --> DB : Persiste registo de viagens
+CompOcupacao --> DB : Persiste estado das docas
+CompFat --> DB : Persiste faturas numeradas
+CompPag --> DB : Persiste pagamentos
+CompManut --> DB : Persiste ordens de trabalho
+
+' Integrações com Sistemas Externos
+CompIdent --> NaveganteGW : Valida cartão Navegante
+CompFat --> ATSystem : Comunica faturas
+CompPag --> PaymentGW : Processa cobrança
+
+@enduml

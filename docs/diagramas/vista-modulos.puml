@@ -1,0 +1,70 @@
+@startuml vista-modulos
+skinparam componentStyle uml2
+skinparam packageStyle rect
+
+title Vista de Módulos — Regras Allowed-to-Use (Lisboa Pedala)
+
+note "Nota: O módulo 'comum' é omitido visualmente deste diagrama por razões de clareza.\nTodos os restantes módulos têm permissão explícita para importar/usar a API do 'comum'." as NoteComum
+
+package "acesso" {
+  [identificacao]
+  [autorizacao]
+}
+
+package "estacao" {
+  [docas]
+  [ocupacao]
+  [disponibilidade]
+  [redistribuicao]
+}
+
+package "viagem" {
+  [viagens]
+  [historico]
+}
+
+package "cobranca" {
+  [tarifario]
+  [faturacao]
+  [pagamentos]
+}
+
+package "frota" {
+  [telemetria]
+  [manutencao]
+}
+
+package "municipio" {
+  [relatorios]
+}
+
+' Regras Allowed-to-Use (Dependências de Código)
+[autorizacao] ..> [identificacao] : usa .api
+[autorizacao] ..> [manutencao] : usa .api
+[autorizacao] ..> [docas] : usa .api
+
+[viagens] ..> [docas] : usa .api
+[ocupacao] ..> [docas] : usa .api
+
+[disponibilidade] ..> [ocupacao] : usa .api
+[disponibilidade] ..> [telemetria] : usa .api
+[disponibilidade] ..> [manutencao] : usa .api
+
+[manutencao] ..> [telemetria] : usa .api
+
+[faturacao] ..> [viagens] : usa .api
+[faturacao] ..> [tarifario] : usa .api
+[faturacao] ..> [identificacao] : usa .api
+
+[pagamentos] ..> [faturacao] : usa .api
+
+[historico] ..> [viagens] : usa .api
+[historico] ..> [faturacao] : usa .api
+[historico] ..> [identificacao] : usa .api
+
+[redistribuicao] ..> [ocupacao] : usa .api
+
+[relatorios] ..> [viagens] : usa .api
+[relatorios] ..> [ocupacao] : usa .api
+
+@enduml
