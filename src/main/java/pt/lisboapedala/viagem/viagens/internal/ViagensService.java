@@ -58,4 +58,9 @@ public class ViagensService implements Viagens {
     public List<Viagem> doUtilizador(UtilizadorId utilizadorId) {
         return viagens.values().stream().filter(v -> v.utilizadorId().equals(utilizadorId)).toList();
     }
+
+    @Override
+    public List<Viagem> todas() {
+        return List.copyOf(viagens.values());
+    }
 }

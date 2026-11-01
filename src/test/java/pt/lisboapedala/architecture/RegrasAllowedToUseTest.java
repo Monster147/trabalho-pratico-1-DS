@@ -17,35 +17,44 @@ class RegrasAllowedToUseTest {
     }
 
     @Test
-    void viagensSoUsaDocasApiEComum() {
-        regra("..viagem.viagens..", "..estacao.docas.internal..", "..cobranca..", "..acesso..").check(classes);
-    }
-
-    @Test
-    void tarifarioSoUsaComum() {
-        regra("..cobranca.tarifario..", "..estacao..", "..viagem..", "..acesso..", "..cobranca.faturacao..", "..cobranca.pagamentos..").check(classes);
-    }
-
-    @Test
-    void faturacaoSoUsaApisPermitidas() {
-        regra("..cobranca.faturacao..", "..estacao..", "..cobranca.pagamentos..").check(classes);
-    }
-
-    @Test
-    void pagamentosSoUsaFaturacaoApiEComum() {
-        regra("..cobranca.pagamentos..", "..viagem..", "..cobranca.tarifario..", "..acesso..", "..estacao..").check(classes);
-    }
-
-    @Test
-    void historicoSoUsaApisPermitidas() {
-        regra("..viagem.historico..", "..estacao..", "..cobranca.tarifario..").check(classes);
+    void cadaComponenteRespeitaApenasDependenciasPermitidas() {
+        regra("..acesso.identificacao..", "..acesso.autorizacao..", "..estacao..", "..viagem..",
+                "..cobranca..", "..frota..", "..municipio..").check(classes);
+        regra("..acesso.autorizacao..", "..acesso.identificacao.internal..", "..estacao.docas.internal..",
+                "..estacao..", "..viagem..", "..cobranca..", "..frota.telemetria..", "..municipio..").check(classes);
+        regra("..estacao.docas..", "..acesso..", "..viagem..", "..cobranca..", "..frota..", "..municipio..").check(classes);
+        regra("..estacao.ocupacao..", "..acesso..", "..viagem..", "..cobranca..",
+                "..estacao.docas.internal..", "..frota..", "..municipio..").check(classes);
+        regra("..estacao.disponibilidade..", "..acesso..", "..viagem..", "..cobranca..",
+                "..estacao.docas..", "..estacao.redistribuicao..", "..frota.telemetria.internal..",
+                "..frota.manutencao.internal..", "..municipio..").check(classes);
+        regra("..estacao.redistribuicao..", "..acesso..", "..viagem..", "..cobranca..",
+                "..estacao.docas..", "..estacao.disponibilidade..", "..frota..", "..municipio..").check(classes);
+        regra("..viagem.viagens..", "..acesso..", "..estacao.docas.internal..", "..estacao.ocupacao..",
+                "..estacao.disponibilidade..", "..estacao.redistribuicao..", "..cobranca..", "..frota..", "..municipio..").check(classes);
+        regra("..viagem.historico..", "..acesso.identificacao.internal..", "..estacao..",
+                "..viagem.viagens.internal..", "..cobranca.tarifario..", "..cobranca.pagamentos..",
+                "..frota..", "..municipio..").check(classes);
+        regra("..cobranca.tarifario..", "..acesso..", "..estacao..", "..viagem..",
+                "..cobranca.faturacao..", "..cobranca.pagamentos..", "..frota..", "..municipio..").check(classes);
+        regra("..cobranca.faturacao..", "..acesso.identificacao.internal..", "..estacao..",
+                "..viagem.viagens.internal..", "..cobranca.tarifario.internal..", "..cobranca.pagamentos..",
+                "..frota..", "..municipio..").check(classes);
+        regra("..cobranca.pagamentos..", "..acesso..", "..estacao..", "..viagem..",
+                "..cobranca.tarifario..", "..cobranca.faturacao.internal..", "..frota..", "..municipio..").check(classes);
+        regra("..frota.telemetria..", "..acesso..", "..estacao..", "..viagem..", "..cobranca..",
+                "..frota.manutencao..", "..municipio..").check(classes);
+        regra("..frota.manutencao..", "..acesso..", "..estacao..", "..viagem..", "..cobranca..",
+                "..frota.telemetria.internal..", "..municipio..").check(classes);
+        regra("..municipio.relatorios..", "..acesso..", "..estacao.docas..", "..estacao.disponibilidade..",
+                "..estacao.redistribuicao..", "..viagem.historico..", "..cobranca..", "..frota..").check(classes);
     }
 
     @Test
     void comumNaoImportaModulos() {
         noClasses().that().resideInAnyPackage("..comum..")
-                .should().dependOnClassesThat().resideInAnyPackage(
-                        "..acesso..", "..estacao..", "..viagem..", "..cobranca..")
+                .should().dependOnClassesThat().resideInAnyPackage("..acesso..", "..estacao..",
+                        "..viagem..", "..cobranca..", "..frota..", "..municipio..")
                 .check(classes);
     }
 
