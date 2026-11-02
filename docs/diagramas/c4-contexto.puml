@@ -39,4 +39,13 @@ System --> PaymentGW : Processa cobrança de faturas (MB WAY / Cartão)
 System --> ATSystem : Comunica faturas numeradas para arquivo legal (10 anos)
 System --> NaveganteSystem : Valida cartões e elegibilidade de assinantes
 
+legend right
+  **Legenda**
+  Boneco: pessoa que usa o sistema
+  Retângulo azul: sistema em foco (Plataforma Lisboa Pedala)
+  Caixa em "Hardware / Dispositivos de Campo": equipamento físico
+  Caixa em "Sistemas Externos": sistema fora da plataforma
+  ──> : interação ou fluxo de informação, no sentido da seta
+endlegend
+
 @enduml

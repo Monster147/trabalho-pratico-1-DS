@@ -2,13 +2,15 @@ package pt.lisboapedala.estacao.docas.internal;
 
 import java.time.Instant;
 
+import pt.lisboapedala.comum.TipoUtilizador;
+
 /**
  * Dados enviados pela doca física. Campos usados por tipo:
- * DESBLOQUEIO_EFETUADO → utilizadorId, bicicletaId, municipioId; BICICLETA_ENCAIXADA → viagemId.
+ * DESBLOQUEIO_EFETUADO → utilizadorId, bicicletaId, municipioId, tipoUtilizador; BICICLETA_ENCAIXADA → viagemId.
  */
 public record EventoDocaRecebido(String docaId, long numeroSequencia, TipoEventoDoca tipo,
                                  String utilizadorId, String bicicletaId, String municipioId,
-                                 String viagemId, Instant ocorridoEm) {
+                                 TipoUtilizador tipoUtilizador, String viagemId, Instant ocorridoEm) {
 
     ChaveIdempotencia chave() {
         return new ChaveIdempotencia(docaId, numeroSequencia);
@@ -30,6 +32,9 @@ public record EventoDocaRecebido(String docaId, long numeroSequencia, TipoEvento
             exigir(utilizadorId, "utilizadorId");
             exigir(bicicletaId, "bicicletaId");
             exigir(municipioId, "municipioId");
+            if (tipoUtilizador == null) {
+                throw new IllegalArgumentException("tipoUtilizador é obrigatório");
+            }
         } else {
             exigir(viagemId, "viagemId");
         }

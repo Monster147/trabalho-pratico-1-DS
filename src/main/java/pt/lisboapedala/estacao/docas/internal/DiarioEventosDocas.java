@@ -25,6 +25,8 @@ import jakarta.annotation.PreDestroy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import pt.lisboapedala.comum.TipoUtilizador;
+
 /**
  * Diário append-only em ficheiro: a persistência da chave de idempotência (ADR-003).
  * Cada escrita faz fsync ({@code force(true)}) antes de retornar, por isso, quando o ACK sai,
@@ -77,7 +79,7 @@ class DiarioEventosDocas {
     synchronized void registarRececao(EventoDocaRecebido e) {
         escrever(String.join("|", "R", cod(e.docaId()), Long.toString(e.numeroSequencia()), e.tipo().name(),
                 cod(e.utilizadorId()), cod(e.bicicletaId()), cod(e.municipioId()), cod(e.viagemId()),
-                e.ocorridoEm().toString()));
+                e.ocorridoEm().toString(), e.tipoUtilizador() == null ? "" : e.tipoUtilizador().name()));
         recebidos.put(e.chave(), e);
     }
 
@@ -105,9 +107,11 @@ class DiarioEventosDocas {
             return;
         }
         List<String> c = Arrays.asList(linha.split("\\|", -1));
-        if (c.get(0).equals("R") && c.size() == 9) {
+        if (c.get(0).equals("R") && (c.size() == 9 || c.size() == 10)) {
+            // Linhas antigas (9 campos) não tinham o tipo de utilizador.
+            TipoUtilizador tipo = c.size() == 10 && !c.get(9).isEmpty() ? TipoUtilizador.valueOf(c.get(9)) : null;
             var e = new EventoDocaRecebido(dec(c.get(1)), Long.parseLong(c.get(2)), TipoEventoDoca.valueOf(c.get(3)),
-                    dec(c.get(4)), dec(c.get(5)), dec(c.get(6)), dec(c.get(7)), Instant.parse(c.get(8)));
+                    dec(c.get(4)), dec(c.get(5)), dec(c.get(6)), tipo, dec(c.get(7)), Instant.parse(c.get(8)));
             recebidos.put(e.chave(), e);
         } else if (c.get(0).equals("P") && c.size() == 3) {
             ultimaPublicada.merge(dec(c.get(1)), Long.parseLong(c.get(2)), Math::max);

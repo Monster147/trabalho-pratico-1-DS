@@ -12,4 +12,10 @@ Aceite pelo programador. Foi implementado o ciclo de vida em `viagem.viagens`, c
 
 ## Deteção de Violações de Arquitetura
 
-Não foram detetadas violações. A dependência externa usada pela implementação é exclusivamente `estacao.docas.api`; os contratos do próprio componente estão em `viagens.api`. A verificação foi feita por revisão humana e inspeção dos imports; não foi introduzida uma fitness function ArchUnit porque o repositório não tinha build Java pré-existente.
+**Caso 1 — `viagens` não consumia os eventos de `docas`.** A especificação (secção 4 do `ARCHITECTURE.md` e vista C&C) diz que `viagens` consome `DesbloqueioEfetuado` e `BicicletaEncaixada`. O código gerado só tinha métodos públicos `abrir` e `fechar`, que ninguém chamava: nenhuma viagem abria nem fechava, e a US-1 não funcionava de ponta a ponta.
+
+**Caso 2 — Tipo de utilizador fixo.** Sem o tipo no evento, `abrir(evento)` assumia sempre `OCASIONAL`, pelo que um assinante seria cobrado com a tarifa errada.
+
+- **Detetado por:** ninguém até mais tarde. Os dois casos passaram nas fitness functions (as dependências eram permitidas) e na revisão inicial. Só foram encontrados na verificação final do repositório, e confirmados pelos testes da US-1 e da US-3.
+
+Fora estes casos, as dependências respeitam a matriz (ArchUnit sem violações).

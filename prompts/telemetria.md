@@ -17,8 +17,9 @@ escrita frequente sem introduzir dependências de outros componentes.
 
 ## Deteção de Violações de Arquitetura
 
-Não foi detetada violação allowed-to-use na revisão do código. A regra
-`RegrasAllowedToUseTest` deteta dependências proibidas; a execução da suite ficou
-bloqueada pelo runtime Java 25 disponível, incompatível com o parser do
-ArchUnit 1.3.0. A revisão humana confirmou que a implementação usa apenas
-`comum` fora do próprio componente.
+Não foi detetada violação. A suite foi executada com Java 21 (OpenJDK 21.0.13) e ArchUnit 1.3.0, através de `mvn test`. As regras do `RegrasAllowedToUseTest` e
+do `ApiPublicaTest` que dizem respeito a este componente foram avaliadas uma a
+uma e passaram sem violações. A revisão humana confirmou que a implementação
+usa apenas `comum` fora do próprio componente.
+
+Depois da correção das regras ArchUnit (ver `archunit.md`), a suite completa passa sem violações.

@@ -12,4 +12,4 @@ Aceite pelo programador. O componente expõe uma consulta pública que combina v
 
 ## Deteção de Violações de Arquitetura
 
-Não foram detetadas violações. A implementação usa apenas `viagens.api`, `faturacao.api` e `comum`, conforme revisão humana dos imports.
+Não foram detetadas violações. A implementação usa apenas `viagens.api`, `faturacao.api` e `comum`, conforme revisão humana dos imports. A execução do ArchUnit com Java 21, depois da correção das regras (ver `archunit.md`), confirmou-o.

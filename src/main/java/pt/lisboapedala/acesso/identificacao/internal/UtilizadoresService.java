@@ -74,15 +74,15 @@ public class UtilizadoresService implements ElegibilidadeProvider {
     public Elegibilidade verificar(UtilizadorId utilizadorId) {
         Utilizador u = contas.get(utilizadorId);
         if (u == null) {
-            return Elegibilidade.inelegivel(utilizadorId, MotivoInelegibilidade.CONTA_INEXISTENTE);
+            return Elegibilidade.inelegivel(utilizadorId, MotivoInelegibilidade.CONTA_INEXISTENTE, null);
         }
         if (u.estado() != EstadoConta.ATIVA) {
-            return Elegibilidade.inelegivel(utilizadorId, MotivoInelegibilidade.CONTA_SUSPENSA);
+            return Elegibilidade.inelegivel(utilizadorId, MotivoInelegibilidade.CONTA_SUSPENSA, u.tipo());
         }
         if (u.tipo() == TipoUtilizador.ASSINANTE && !navegante.passeValido(u.numeroCartaoNavegante())) {
-            return Elegibilidade.inelegivel(utilizadorId, MotivoInelegibilidade.PASSE_NAVEGANTE_INVALIDO);
+            return Elegibilidade.inelegivel(utilizadorId, MotivoInelegibilidade.PASSE_NAVEGANTE_INVALIDO, u.tipo());
         }
-        return Elegibilidade.elegivel(utilizadorId);
+        return Elegibilidade.elegivel(utilizadorId, u.tipo());
     }
 
     @Override

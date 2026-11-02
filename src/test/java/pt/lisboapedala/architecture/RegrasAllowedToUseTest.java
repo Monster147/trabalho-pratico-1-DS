@@ -4,6 +4,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.domain.JavaClasses;
 import com.tngtech.archunit.core.importer.ClassFileImporter;
+import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.lang.ArchRule;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -13,7 +14,9 @@ class RegrasAllowedToUseTest {
 
     @BeforeAll
     static void importarClasses() {
-        classes = new ClassFileImporter().importPackages("pt.lisboapedala");
+        classes = new ClassFileImporter()
+                .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
+                .importPackages("pt.lisboapedala");
     }
 
     @Test
@@ -21,7 +24,7 @@ class RegrasAllowedToUseTest {
         regra("..acesso.identificacao..", "..acesso.autorizacao..", "..estacao..", "..viagem..",
                 "..cobranca..", "..frota..", "..municipio..").check(classes);
         regra("..acesso.autorizacao..", "..acesso.identificacao.internal..", "..estacao.docas.internal..",
-                "..estacao..", "..viagem..", "..cobranca..", "..frota.telemetria..", "..municipio..").check(classes);
+                "..estacao.ocupacao..", "..estacao.disponibilidade..", "..estacao.redistribuicao..", "..viagem..", "..cobranca..", "..frota.telemetria..", "..municipio..").check(classes);
         regra("..estacao.docas..", "..acesso..", "..viagem..", "..cobranca..", "..frota..", "..municipio..").check(classes);
         regra("..estacao.ocupacao..", "..acesso..", "..viagem..", "..cobranca..",
                 "..estacao.docas.internal..", "..frota..", "..municipio..").check(classes);

@@ -52,3 +52,11 @@ A característica arquitetural «Segurança» pode ser decomposta nas seguintes 
 - Cenário: Quando uma nova câmara municipal adere à plataforma com um tarifário diferente, o sistema deve permitir configurar as suas regras de cobrança sem alterar a lógica de negócio comum nem duplicar o código da aplicação.
 
 - Implicações arquiteturais: Flexibilidade na configuração de regras de negócio e capacidade de suportar diferentes cenários de uso sem necessidade de alterações no código-fonte.
+
+## 5. Outras consideradas
+
+| Característica | Porque não entrou no top 3 |
+|---|---|
+| Desempenho | Importante, mas não crítica: pequenos atrasos não comprometem o uso do mapa. O isolamento das leituras do mapa já é garantido pela Elasticidade. |
+| Segurança | Crítica, mas resolve-se com mecanismos conhecidos (autenticação, QR assinado, proteção de dados) sem ser a que mais condiciona a divisão em componentes. |
+| Legal / Arquivabilidade | É uma obrigação real, mas fica concentrada num só componente (`faturacao`) e não condiciona o resto da arquitetura. |

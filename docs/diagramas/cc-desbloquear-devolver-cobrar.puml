@@ -94,4 +94,13 @@ else Falha no Pagamento
 end
 deactivate PagamentosComp
 
+legend right
+  **Legenda**
+  Participante: elemento em execução (pessoa, dispositivo ou componente)
+  -> : pedido ou chamada
+  --> : resposta (ex.: ACK) ou evento publicado
+  K1, K2, ... : identificador do conector
+  Nota: garantia imposta por um ADR
+endlegend
+
 @enduml

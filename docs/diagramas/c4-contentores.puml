@@ -48,4 +48,14 @@ BackendAPI --> NaveganteSystem : Valida cartões física e remotamente
 BackendAPI --> ATSystem : Envia faturas numeradas (arquivo 10 anos)
 PaymentWorker --> PaymentGW : Executa cobrança assíncrona (MB WAY / Cartão)
 
+legend right
+  **Legenda**
+  Boneco: pessoa que usa o sistema
+  Caixa: contentor (aplicação ou processo executável)
+  Cilindro: base de dados
+  Fundo amarelo: fronteira do backend Lisboa Pedala
+  ──> : chamada síncrona ou leitura/escrita
+  ..> : evento assíncrono (pub/sub)
+endlegend
+
 @enduml

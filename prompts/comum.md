@@ -20,8 +20,9 @@ e invariantes.
 
 ## Deteção de Violações de Arquitetura
 
-Não foi detetada violação de dependência entre `comum` e outros pacotes na
-revisão do código. A regra `ComumTest` foi criada para automatizar a verificação,
-mas a execução ficou bloqueada pelo runtime Java 25 disponível, incompatível
-com o parser do ArchUnit 1.3.0; a remoção da operação de soma foi uma decisão
-de revisão humana do programador.
+Não foi detetada violação. A suite foi executada com Java 21 (OpenJDK 21.0.13) e ArchUnit 1.3.0, através de `mvn test`. O `ComumTest` (2 testes) e a regra
+`comumNaoImportaModulos` do `RegrasAllowedToUseTest` passaram: `comum` não
+depende de nenhum outro pacote do projeto nem de frameworks. A remoção da
+operação de soma foi uma decisão de revisão humana do programador.
+
+Depois da correção das regras ArchUnit (ver `archunit.md`), a suite completa passa sem violações.

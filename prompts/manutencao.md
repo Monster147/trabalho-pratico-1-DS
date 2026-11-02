@@ -16,8 +16,9 @@ componentes.
 
 ## Deteção de Violações de Arquitetura
 
-Não foi detetada violação na revisão do código. `RegrasAllowedToUseTest` verifica
-a dependência exclusiva em `telemetria.api` e `comum`, enquanto
-`ApiPublicaTest` verifica o encapsulamento dos internals. A execução ficou
-bloqueada pelo runtime Java 25 disponível, incompatível com o parser do
-ArchUnit 1.3.0.
+Não foi detetada violação. A suite foi executada com Java 21 (OpenJDK 21.0.13) e ArchUnit 1.3.0, através de `mvn test`. As regras do `RegrasAllowedToUseTest` e
+do `ApiPublicaTest` que dizem respeito a este componente foram avaliadas uma a
+uma e passaram sem violações: o componente depende apenas de `telemetria.api` e
+`comum`, e ninguém usa os seus internals.
+
+Depois da correção das regras ArchUnit (ver `archunit.md`), a suite completa passa sem violações.

@@ -15,8 +15,8 @@ class SemCiclosTest {
     }
 
     @Test
-    void dominiosNaoTemCiclos() {
-        SlicesRuleDefinition.slices().matching("pt.lisboapedala.(*)..")
+    void componentesNaoTemCiclos() {
+        SlicesRuleDefinition.slices().matching("pt.lisboapedala.(*).(*)..")
                 .should().beFreeOfCycles()
                 .check(classes);
     }

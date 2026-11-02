@@ -27,6 +27,6 @@ class AutorizacaoService implements Autorizacao {
         if (!e.elegivel()) {
             throw new UtilizadorNaoElegivelException(utilizadorId, e.motivo().name());
         }
-        return emissor.emitir(utilizadorId);
+        return emissor.emitir(utilizadorId, e.tipoUtilizador());
     }
 }

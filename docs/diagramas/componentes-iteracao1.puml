@@ -33,4 +33,12 @@ contas ..> faturacao
 redistribuicao ..> estacoes
 relatorios ..> viagens
 relatorios ..> estacoes
+
+legend right
+  **Legenda**
+  Caixa: componente lógico
+  A ..> B : A depende de B (chama a interface de B ou consome os seus eventos)
+  O componente comum não está representado
+endlegend
+
 @enduml

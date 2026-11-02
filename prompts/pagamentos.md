@@ -12,4 +12,4 @@ Aceite pelo programador. O listener de `FaturaEmitida` executa a cobrança em mo
 
 ## Deteção de Violações de Arquitetura
 
-Não foram detetadas violações. A revisão humana confirmou que o componente importa apenas `faturacao.api` e `comum`; o gateway permanece interno.
+Não foram detetadas violações. A revisão humana confirmou que o componente importa apenas `faturacao.api` e `comum`; o gateway permanece interno. A execução do ArchUnit com Java 21, depois da correção das regras (ver `archunit.md`), confirmou-o.

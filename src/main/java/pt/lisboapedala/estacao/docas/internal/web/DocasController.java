@@ -39,7 +39,7 @@ class DocasController {
     @PostMapping("/{docaId}/eventos")
     AckResposta receberEvento(@PathVariable String docaId, @RequestBody EventoDocaPedido p) {
         var evento = new EventoDocaRecebido(docaId, p.numeroSequencia(), p.tipo(), p.utilizadorId(),
-                p.bicicletaId(), p.municipioId(), p.viagemId(), p.ocorridoEm());
+                p.bicicletaId(), p.municipioId(), p.tipoUtilizador(), p.viagemId(), p.ocorridoEm());
         var resultado = rececao.receber(evento);
         return new AckResposta(docaId, p.numeroSequencia(), resultado.name());
     }

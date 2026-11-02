@@ -15,8 +15,9 @@ conhecidas e CO2 evitado, e disponibiliza o relatório por endpoint.
 
 ## Deteção de Violações de Arquitetura
 
-Não foi detetada violação na revisão do código. A fitness function
-`RegrasAllowedToUseTest` verifica que o componente não depende de internals ou
-de domínios não autorizados; a revisão humana confirmou o mesmo no desenho das
-interfaces. A execução da suite ficou bloqueada pelo runtime Java 25 disponível,
-incompatível com o parser do ArchUnit 1.3.0.
+Não foi detetada violação. A suite foi executada com Java 21 (OpenJDK 21.0.13) e ArchUnit 1.3.0, através de `mvn test`. As regras do `RegrasAllowedToUseTest` e
+do `ApiPublicaTest` que dizem respeito a este componente foram avaliadas uma a
+uma e passaram sem violações. A revisão humana confirmou o mesmo no desenho das
+interfaces.
+
+Depois da correção das regras ArchUnit (ver `archunit.md`), a suite completa passa sem violações.

@@ -4,8 +4,6 @@ skinparam packageStyle rect
 
 title Diagrama de Componentes C4 (Nível 3) — Backend Monólito Modular (Lisboa Pedala)
 
-note "Legenda:\n  ──> Chamada Síncrona a Interface Interna (.api) / REST Externo\n  ..> Evento Assíncrono / Mensagem Pub-Sub Interna\n  Todos os componentes utilizam o pacote partilhado 'comum'." as Legend
-
 package "Dispositivos & Clientes (Externos ao Backend)" #LightGray {
   [Aplicação Móvel / App] as MobileApp
   [Controlador da Doca / Hardware] as DockHW
@@ -103,5 +101,17 @@ CompManut --> DB : Persiste ordens de trabalho
 CompIdent --> NaveganteGW : Valida cartão Navegante
 CompFat --> ATSystem : Comunica faturas
 CompPag --> PaymentGW : Processa cobrança
+
+legend right
+  **Legenda**
+  Caixa: componente lógico (um pacote Java)
+  Pacote: domínio (particionamento de topo)
+  Fundo amarelo: contentor Backend Monólito Modular
+  Fundo cinzento: elementos externos ao backend, ou o pacote partilhado comum
+  Cilindro: base de dados
+  ──> : chamada síncrona a uma interface .api, ou REST externo
+  ..> : evento assíncrono (pub/sub interno)
+  Todos os componentes usam o pacote partilhado comum
+endlegend
 
 @enduml

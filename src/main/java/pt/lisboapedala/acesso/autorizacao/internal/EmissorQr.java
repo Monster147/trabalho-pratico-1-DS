@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import pt.lisboapedala.acesso.autorizacao.api.QrAssinado;
+import pt.lisboapedala.comum.TipoUtilizador;
 import pt.lisboapedala.comum.UtilizadorId;
 
 /** Gera QR assinados com validade curta (configurável). */
@@ -39,10 +40,10 @@ class EmissorQr {
         this.validade = validade;
     }
 
-    QrAssinado emitir(UtilizadorId utilizadorId) {
+    QrAssinado emitir(UtilizadorId utilizadorId, TipoUtilizador tipo) {
         Instant emitidoEm = relogio.instant();
         Instant expiraEm = emitidoEm.plus(validade);
-        String payload = String.join("|", utilizadorId.valor(), Long.toString(emitidoEm.getEpochSecond()),
+        String payload = String.join("|", utilizadorId.valor(), tipo.name(), Long.toString(emitidoEm.getEpochSecond()),
                 Long.toString(expiraEm.getEpochSecond()), UUID.randomUUID().toString());
         String mensagem = PREFIXO + "." + B64URL.encodeToString(payload.getBytes(UTF_8));
         return new QrAssinado(mensagem + "." + B64URL.encodeToString(assinar(mensagem)), expiraEm);

@@ -8,6 +8,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.event.TransactionalEventListener;
 import pt.lisboapedala.acesso.identificacao.api.DadosFiscais;
 import pt.lisboapedala.acesso.identificacao.api.DadosFiscaisProvider;
@@ -36,8 +38,13 @@ public class FaturacaoService implements Faturacao {
         this.events = events;
     }
 
+    /**
+     * Emitir a fatura é uma unidade de trabalho própria (REQUIRES_NEW): sem ela, FaturaEmitida era
+     * publicado fora de qualquer transação e o listener AFTER_COMMIT de pagamentos nunca corria.
+     */
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void quandoViagemFechada(ViagemFechada evento) {
         var viagem = evento.viagem();
         DadosFiscais fiscais = dadosFiscais.obterDadosFiscais(viagem.utilizadorId());

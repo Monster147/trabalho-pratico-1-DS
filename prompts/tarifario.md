@@ -12,4 +12,8 @@ Aceite pelo programador. O cálculo recebe duração, tipo de utilizador e munic
 
 ## Deteção de Violações de Arquitetura
 
-Não foram detetadas violações. O componente importa apenas tipos de `comum` fora do seu próprio pacote; a revisão humana verificou a separação entre API e implementação interna.
+**Caso 1 — Nenhum tarifário configurado na aplicação.** O ADR-002 decide que cada município tem o seu tarifário em configuração. O código gerado só permitia configurar tarifários por código (`configurar`), e nada o fazia no arranque: a aplicação a correr não tinha tarifário para Lisboa, e a faturação da US-1 falhava com "Tarifário inexistente".
+
+- **Detetado por:** ninguém até mais tarde. Passou nas fitness functions e no teste unitário do tarifário, que configura o tarifário à mão. Só foi visto ao escrever o teste ponta a ponta da US-1.
+
+Fora este caso, o componente importa apenas `comum` (ArchUnit sem violações).

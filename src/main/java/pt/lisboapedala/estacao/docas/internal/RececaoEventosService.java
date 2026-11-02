@@ -101,7 +101,7 @@ public class RececaoEventosService {
         Object publico = switch (e.tipo()) {
             case DESBLOQUEIO_EFETUADO -> new DesbloqueioEfetuado(docaId, e.numeroSequencia(),
                     new UtilizadorId(e.utilizadorId()), e.bicicletaId(), new MunicipioId(e.municipioId()),
-                    e.ocorridoEm());
+                    e.tipoUtilizador(), e.ocorridoEm());
             case BICICLETA_ENCAIXADA -> new BicicletaEncaixada(docaId, e.numeroSequencia(), e.viagemId(),
                     e.ocorridoEm());
         };

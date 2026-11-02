@@ -2,13 +2,36 @@
 
 A especificação ajudou-nos a organizar os módulos, limitar as dependências entre componentes e descrever o fluxo principal de desbloqueio, devolução e cobrança. Durante a implementação, porém, percebemos que algumas decisões precisavam de mais detalhe para evitar interpretações diferentes.
 
-A persistência foi um desses pontos. O diário das docas grava eventos e chaves num ficheiro antes de confirmar a receção, mas viagens, faturas e dívidas são guardadas em estruturas em memória. Por isso, esses dados perdem-se se a aplicação reiniciar. Além disso, embora o fecho da viagem esteja anotado com @Transactional, o estado é atualizado numa estrutura em memória; essa anotação, por si só, não garante que a alteração e a publicação do evento sejam revertidas em conjunto se ocorrer uma falha.
+## O que a especificação não previu
 
-Também encontrámos diferenças entre o que os diagramas sugerem e o que o código faz. Por exemplo, a sincronização das docas segue um caminho diferente do indicado na vista C&C, e a disponibilidade recebe atualizações de ocupação através de um evento que não estava descrito dessa forma. Os registos em prompts/ documentam estes casos e explicam como foram identificados. São exemplos úteis para perceber o que as verificações arquiteturais detetam e o que exige revisão do comportamento.
+A persistência foi um desses pontos. O diário das docas grava eventos e chaves num ficheiro antes de confirmar a receção, mas viagens, faturas e dívidas são guardadas em estruturas em memória. Por isso, esses dados perdem-se se a aplicação reiniciar. Além disso, as anotações `@Transactional` assentam num gestor de transações que não faz nada: não garantem que uma alteração e a publicação do evento sejam revertidas em conjunto se ocorrer uma falha.
 
-Os testes ArchUnit verificam regras como as dependências permitidas e a ausência de ciclos. Há também um teste unitário do tarifário, mas estes testes não demonstram, por si só, que todos os percursos das histórias de utilizador funcionam de ponta a ponta. Para isso, seria útil testar cenários completos de desbloqueio, devolução e cobrança, incluindo falhas e reinícios.
+A especificação também não dizia de onde vinha o tipo de utilizador de cada viagem. `viagens` precisa dele para a tarifa, mas só pode usar `docas.api`, e o evento `DesbloqueioEfetuado(docaId, numSequencia)` não o trazia. A solução foi o QR assinado passar a incluir o tipo, e a doca enviá-lo no evento (no desbloqueio com cartão Navegante é sempre assinante).
 
-Durante a geração, encontrámos desvios concretos à especificação. Na sincronização das docas, o código entregou os dados através de docas.api, em vez de seguir o caminho direto representado na vista C&C. Na disponibilidade, foi criado o evento OcupacaoAtualizada, embora a vista descrevesse uma leitura síncrona de ocupacao.api. Estes casos passaram despercebidos aos testes ArchUnit: as dependências usadas eram permitidas pela matriz, e os testes não verificam se os conectores implementam o fluxo dos diagramas. Já a persistência das docas divergiu do meio descrito no C4, tendo sido usado um ficheiro em vez de uma base de dados relacional, e essa diferença foi detetada na revisão humana.
+Também não estava dito como o tarifário de cada município chega à aplicação. O ADR-002 decide que é configuração, mas nada a carregava no arranque, e a cobrança da US-1 falhava fora dos testes. Os tarifários passaram a ser lidos de `application.properties`.
 
-A especificação também poderia esclarecer melhor como tratar avarias reportadas por utilizadores, que dados devem ser persistidos e recuperados após uma falha, e que informação pode ser exposta nos relatórios e nos futuros dados abertos. Numa próxima iteração, detalharíamos esses contratos e cenários e confirmaríamos que os registos de geração cobrem os casos pedidos com ocorrências reais do grupo.
+Ficaram ainda por esclarecer como tratar avarias reportadas por utilizadores, que dados devem ser recuperados após uma falha e que informação pode ser exposta nos relatórios e nos futuros dados abertos.
 
+## Violações cometidas pela IA
+
+Encontrámos desvios concretos à especificação, todos registados em `prompts/`:
+
+- Na sincronização das docas (K2), o código entregou os dados através de `docas.api`, em vez de seguir o caminho direto representado na vista C&C.
+- Na disponibilidade, foi criado o evento `OcupacaoAtualizada`, embora a vista descrevesse uma leitura síncrona de `ocupacao.api`.
+- A persistência das docas usou um ficheiro, e não a base de dados relacional do C4.
+- `viagens` não consumia os eventos de `docas`: nenhuma viagem abria nem fechava. Além disso, assumia sempre o tipo `OCASIONAL`, pelo que um assinante seria cobrado com a tarifa errada.
+- `faturacao` publicava `FaturaEmitida` fora de qualquer transação, e o listener de `pagamentos`, que só reage depois de um commit, ignorava-o: as faturas eram emitidas, mas nunca cobradas.
+- O tarifário não era carregado no arranque: o ADR-002 decide que é configuração por município, mas o código só o permitia configurar por código, e a aplicação a correr não tinha tarifário.
+- Na 1.ª versão, a IA escreveu código no pacote de outro componente (`frota.manutencao.internal`) para o projeto compilar.
+
+## O que as fitness functions apanharam e o que passou despercebido
+
+Nenhuma destas violações foi apanhada pelo ArchUnit. Todas usavam dependências permitidas pela matriz, e as regras só verificam dependências entre pacotes: não verificam se os conectores seguem os diagramas, que eventos cada componente consome, nem onde se persiste.
+
+Os três primeiros casos e o último foram detetados na revisão humana. Os restantes (`viagens`, `faturacao` e o tarifário) passaram despercebidos até mais tarde: só foram encontrados na verificação final do repositório e confirmados pelos testes ponta a ponta, que falham sem as correções.
+
+As próprias fitness functions também tinham erros. Quando finalmente correram com Java 21, falharam 3 dos 7 testes, mas eram falsos positivos: uma regra proibia o domínio `estacao` inteiro a `autorizacao`, apesar de `docas.api` ser permitida; outra analisava também as classes de teste; e o teste de ciclos procurava ciclos entre domínios em vez de entre componentes. Pior, como as regras de dependências são verificadas em sequência no mesmo método, a primeira falha escondia as 12 regras seguintes. Depois de corrigidas, as fitness functions e os testes das user stories passam com um único `mvn test`.
+
+## O que faríamos diferente
+
+Retiramos três lições. Uma especificação com vistas e diagramas não chega se as regras verificáveis só cobrirem dependências: seria útil acrescentar regras sobre que eventos cada componente pode ouvir. Os testes das user stories, escritos mais cedo, teriam apanhado os erros de `viagens` e `faturacao` logo na geração. E as fitness functions têm de correr desde o primeiro dia, porque um teste que nunca correu pode estar errado sem ninguém saber.
